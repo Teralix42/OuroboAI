@@ -8,7 +8,7 @@ class AIApp(QWidget):
 
         self.initUI()
         self.sandbox = sandbox()  # Initialize the sandbox
-
+        self.survivors = []  # List to store survivors' AI code
 
     def initUI(self):
         # Create UI components
@@ -33,24 +33,37 @@ class AIApp(QWidget):
 
         self.setLayout(self.layout)
 
-
     def run_iteration(self):
-	    # Get code from input area
+        # Get the code from the input area
         ai_code = self.code_input.toPlainText()
 
-        # Run the AI through the sandbox
-        mutated_code, validation, error_message = self.sandbox.run_ai(ai_code)
+        # Add the current AI code as a survivor (for the first iteration, it's the starting point)
+        if not self.survivors:
+            self.survivors.append(ai_code)
 
-        if validation and mutated_code:
-		    # If valid, display it in both result and overwrite input box for next iter
-            self.result_output.setText(mutated_code)
-            self.code_input.setText(mutated_code)
-            self.status_label.setText("Mutation successful!")
-        else:
-		    # If invalid, show the error message and keep original input
-            self.result_output.setText(error_message)
-            self.status_label.setText("Error during mutation!")
+        # Run the iteration with the current survivors
+        new_generation = self.sandbox.iteration(self.survivors)
 
+        # Clear the result output area
+        self.result_output.clear()
+
+        # Display the results: AI code, validation status, error message, and score
+        for ai, validated, error_message, score in new_generation:
+            result = f"AI: {ai}\n"
+            result += f"Validated: {validated}\n"
+            result += f"Error: {error_message if error_message else 'None'}\n"
+            result += f"Score: {score}\n\n"
+            self.result_output.append(result)
+
+        # Update the survivors with the top AI codes for the next iteration
+        # The survivors list will hold the top performers from the new generation
+        self.survivors = [ai for ai, _, _, _ in new_generation[:len(self.survivors)]]
+
+        # Overwrite the code input with the mutated code of the top performer
+        top_performer_code = new_generation[0][0]  # Get the AI code of the top performer
+        self.code_input.setText(top_performer_code)
+
+        self.status_label.setText("Iteration completed!")
 
 def main():
     app = QApplication(sys.argv)
