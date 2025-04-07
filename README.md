@@ -1,6 +1,6 @@
 # 🧠 OuroboroAI
 
-Welcome to **OuroboAI** — a lightweight Python-based framework for building **self-evolving AIs**.  
+Welcome to **OuroboroAI** — a lightweight Python-based framework for building **self-evolving AIs**.  
 This project is a work-in-progress **Recursive Self-Improving system (RSI)** where AIs mutate their own code, get evaluated, and evolve over time.
 
 ---
