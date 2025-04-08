@@ -1,75 +1,134 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QTextEdit
-from sandbox import Sandbox as sandbox
+from PyQt5.QtWidgets import (
+	QApplication, QWidget, QVBoxLayout, QLabel, QPushButton,
+	QTextEdit, QSlider, QHBoxLayout, QSpinBox
+)
+from PyQt5.QtCore import Qt
+from sandbox import Sandbox
 
 class AIApp(QWidget):
-    def __init__(self):
-        super().__init__()
+	def __init__(self):
+		super().__init__()
+        
+		self.initUI()
+		self.sandbox = Sandbox()  # Initialize the sandbox
+		self.survivors = []  # List to store survivors' AI code
+		self.input_box_text = [""]
+		self.output_box_text = [""]
+		self.input_box_selector["slider"].setMaximum(0)
+		self.output_box_selector["spinbox"].setMaximum(0)
 
-        self.initUI()
-        self.sandbox = sandbox()  # Initialize the sandbox
-        self.survivors = []  # List to store survivors' AI code
 
-    def initUI(self):
+	def initUI(self):
         # Create UI components
-        self.setWindowTitle("AI Evolution")
-        self.setGeometry(100, 100, 600, 400)
+		self.setWindowTitle("AI Evolution")
+		self.setGeometry(100, 100, 600, 400)
 
-        self.layout = QVBoxLayout()
+		self.layout = QVBoxLayout()
 
-        self.status_label = QLabel("Welcome to the AI Evolution System", self)
-        self.layout.addWidget(self.status_label)
+		self.status_label = QLabel("Welcome to the AI Evolution System", self)
+		self.layout.addWidget(self.status_label)
 
-        self.code_input = QTextEdit(self)
-        self.layout.addWidget(self.code_input)
+		self.input_box = QTextEdit(self)
+		self.input_box.textChanged.connect(self.sync_input_box)
+		self.layout.addWidget(self.input_box)
 
-        self.run_button = QPushButton('Run Iteration', self)
-        self.run_button.clicked.connect(self.run_iteration)
-        self.layout.addWidget(self.run_button)
+		self.input_box_selector = self.create_selector("AI index", self.on_parent_change)
+		self.layout.addLayout(self.input_box_selector["layout"])
 
-        self.result_output = QTextEdit(self)
-        self.result_output.setReadOnly(True)
-        self.layout.addWidget(self.result_output)
+		self.run_button = QPushButton('Run Iteration', self)
+		self.run_button.clicked.connect(self.run_iteration)
+		self.layout.addWidget(self.run_button)
 
-        self.setLayout(self.layout)
+		self.output_box = QTextEdit(self)
+		self.output_box.setReadOnly(True)
+		self.layout.addWidget(self.output_box)
 
-    def run_iteration(self):
-        # Get the code from the input area
-        ai_code = self.code_input.toPlainText()
+		self.output_box_selector = self.create_selector("Child Index", self.on_child_change)
+		self.layout.addLayout(self.output_box_selector["layout"])
 
-        # Add the current AI code as a survivor (for the first iteration, it's the starting point)
-        if not self.survivors:
-            self.survivors.append(ai_code)
+		self.setLayout(self.layout)
+	
+	
+	def create_selector(self, label, callback):
+		widgets = {}
+		layout = QHBoxLayout()
+		layout.addWidget(QLabel(label))
 
-        # Run the iteration with the current survivors
-        new_generation = self.sandbox.iteration(self.survivors)
+		spinbox = QSpinBox()
+		spinbox.setMinimum(0)
+		layout.addWidget(spinbox)
 
-        # Clear the result output area
-        self.result_output.clear()
+		slider = QSlider(Qt.Horizontal)
+		slider.setMinimum(0)
+		layout.addWidget(slider)
 
-        # Display the results: AI code, validation status, error message, and score
-        for ai, validated, error_message, score in new_generation:
-            result = f"AI: {ai}\n"
-            result += f"Validated: {validated}\n"
-            result += f"Error: {error_message if error_message else 'None'}\n"
-            result += f"Score: {score}\n\n"
-            self.result_output.append(result)
+		slider.valueChanged.connect(spinbox.setValue)
+		spinbox.valueChanged.connect(slider.setValue)
+		spinbox.valueChanged.connect(callback)
 
-        # Update the survivors with the top AI codes for the next iteration
-        # The survivors list will hold the top performers from the new generation
-        self.survivors = [ai for ai, _, _, _ in new_generation[:len(self.survivors)]]
+		widgets["layout"] = layout
+		widgets["slider"] = slider
+		widgets["spinbox"] = spinbox
+		return widgets
 
-        # Overwrite the code input with the mutated code of the top performer
-        top_performer_code = new_generation[0][0]  # Get the AI code of the top performer
-        self.code_input.setText(top_performer_code)
 
-        self.status_label.setText("Iteration completed!")
+	def run_iteration(self):
+		self.survivors[:] = self.input_box_text
+		new_generation = self.sandbox.iteration(self.survivors)
+
+
+        # Settup the lists of texts for output and input boxes
+		self.output_box_text.clear()
+		for ai, validated, error_message, score in new_generation:
+			result = f"AI: {ai}\n"
+			result += f"Validated: {validated}\n"
+			result += f"Error: {error_message if error_message else 'None'}\n"
+			result += f"Score: {score}\n\n"
+			self.output_box_text.append(result)
+		
+		self.input_box_text.clear()
+		self.input_box_text[:] = [ai for ai, _, _, _ in new_generation[:int(self.sandbox.population_size / 2)]]
+		
+
+		# Set maximum index for the selectors
+		for selector, data in [(self.input_box_selector, self.input_box_text), (self.output_box_selector, self.output_box_text)]:
+			max_index = max(0, len(data) - 1)
+			selector["slider"].setMaximum(max_index)
+			selector["spinbox"].setMaximum(max_index)
+		
+
+		# Set selectors back to O
+		self.on_parent_change(0)
+		self.on_child_change(0)
+
+
+		self.status_label.setText("Iteration completed!")
+	
+
+	def on_parent_change(self, index):
+		if 0 <= index < len(self.input_box_text):
+			code = self.input_box_text[index]
+			self.input_box.setText(code)
+
+
+	def on_child_change(self, index):
+		if 0 <= index < len(self.output_box_text):
+			code = self.output_box_text[index]
+			self.output_box.setText(code)
+	
+
+	def sync_input_box(self):
+		current_index = self.input_box_selector["spinbox"].value()
+		if 0 <= current_index < len(self.input_box_text):
+			self.input_box_text[current_index] = self.input_box.toPlainText()
+
 
 def main():
-    app = QApplication(sys.argv)
-    ex = AIApp()
-    ex.show()
-    sys.exit(app.exec_())
+	app = QApplication(sys.argv)
+	ex = AIApp()
+	ex.show()
+	sys.exit(app.exec_())
 
 if __name__ == '__main__':
-    main()
+	main()
