@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import (
 	QApplication, QWidget, QVBoxLayout, QLabel, QPushButton,
-	QTextEdit, QSlider, QHBoxLayout, QSpinBox
+	QTextEdit, QSlider, QHBoxLayout, QSpinBox, QCheckBox
 )
 from PyQt5.QtCore import Qt
 from sandbox import Sandbox
@@ -11,6 +11,8 @@ class AIApp(QWidget):
 		super().__init__()
         
 		self.initUI()
+		self.dark_mode_enabled = True  # Start in dark mode
+		self.apply_dark_mode()
 		self.sandbox = Sandbox()  # Initialize the sandbox
 		self.survivors = []  # List to store survivors' AI code
 		self.input_box_text = [""]
@@ -48,6 +50,19 @@ class AIApp(QWidget):
 		self.layout.addLayout(self.output_box_selector["layout"])
 
 		self.setLayout(self.layout)
+
+
+		# Create a horizontal layout for right-aligned checkbox
+		theme_toggle_layout = QHBoxLayout()
+		theme_toggle_layout.addStretch()  # Push everything to the right
+
+		self.theme_checkbox = QCheckBox("Dark Mode")
+		self.theme_checkbox.setChecked(True)
+		self.theme_checkbox.stateChanged.connect(self.toggle_dark_mode)
+		theme_toggle_layout.addWidget(self.theme_checkbox)
+
+		# Add the layout to the main layout
+		self.layout.addLayout(theme_toggle_layout)
 	
 	
 	def create_selector(self, label, callback):
@@ -122,6 +137,58 @@ class AIApp(QWidget):
 		current_index = self.input_box_selector["spinbox"].value()
 		if 0 <= current_index < len(self.input_box_text):
 			self.input_box_text[current_index] = self.input_box.toPlainText()
+	
+
+	def toggle_dark_mode(self):
+		if self.theme_checkbox.isChecked():
+			self.apply_dark_mode()
+		else:
+			self.setStyleSheet("")
+
+	
+
+	def apply_dark_mode(self):
+		dark_stylesheet = """
+			QWidget {
+				background-color: #121212;
+				color: #FFFFFF;
+			}
+			QTextEdit, QLineEdit {
+				background-color: #1E1E1E;
+				color: #D4D4D4;
+				border: 1px solid #333;
+			}
+			QPushButton {
+				background-color: #333;
+				color: #FFFFFF;
+				border: 1px solid #444;
+				padding: 5px;
+			}
+			QPushButton:hover {
+				background-color: #444;
+			}
+			QLabel {
+				color: #FFFFFF;
+			}
+			QSlider::groove:horizontal {
+				height: 6px;
+				background: #444;
+			}
+			QSlider::handle:horizontal {
+				background: #888;
+				border: 1px solid #555;
+				width: 14px;
+				margin: -4px 0;
+				border-radius: 7px;
+			}
+			QSpinBox {
+				background-color: #1E1E1E;
+				color: #D4D4D4;
+				border: 1px solid #333;
+			}
+		"""
+		self.setStyleSheet(dark_stylesheet)
+
 
 
 def main():
