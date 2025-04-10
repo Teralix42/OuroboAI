@@ -1,29 +1,38 @@
 import sys
+
 from PyQt5.QtWidgets import (
 	QApplication, QWidget, QVBoxLayout, QLabel, QPushButton,
 	QTextEdit, QSlider, QHBoxLayout, QSpinBox, QCheckBox
 )
 from PyQt5.QtCore import Qt
+
 from sandbox import Sandbox
+from pythonHighlighter import PythonHighlighter
+
+
 
 class AIApp(QWidget):
 	def __init__(self):
 		super().__init__()
         
-		self.initUI()
-		self.dark_mode_enabled = True  # Start in dark mode
-		self.apply_dark_mode()
-		self.sandbox = Sandbox()  # Initialize the sandbox
-		self.survivors = []  # List to store survivors' AI code
 		self.input_box_text = [""]
 		self.output_box_text = [""]
+
+		self.initUI()
+
+		self.dark_mode_enabled = True  # Start in dark mode
+		self.apply_dark_mode()
 		self.input_box_selector["slider"].setMaximum(0)
 		self.output_box_selector["spinbox"].setMaximum(0)
+
+		self.sandbox = Sandbox()
+		
+		self.survivors = []
 
 
 	def initUI(self):
         # Create UI components
-		self.setWindowTitle("AI Evolution")
+		self.setWindowTitle("OuroboroAI")
 		self.setGeometry(100, 100, 600, 400)
 
 		self.layout = QVBoxLayout()
@@ -34,6 +43,8 @@ class AIApp(QWidget):
 		self.input_box = QTextEdit(self)
 		self.input_box.textChanged.connect(self.sync_input_box)
 		self.layout.addWidget(self.input_box)
+
+		self.highlighter = PythonHighlighter(self.input_box.document())
 
 		self.input_box_selector = self.create_selector("AI index", self.on_parent_change)
 		self.layout.addLayout(self.input_box_selector["layout"])
@@ -93,7 +104,7 @@ class AIApp(QWidget):
 		new_generation = self.sandbox.iteration(self.survivors)
 
 
-        # Settup the lists of texts for output and input boxes
+        # Setup the lists of texts for output and input boxes
 		self.output_box_text.clear()
 		for ai, validated, error_message, score in new_generation:
 			result = f"AI: {ai}\n"

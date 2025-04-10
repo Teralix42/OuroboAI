@@ -1,9 +1,15 @@
 from sandbox import Sandbox as sandbox
 
 ai_code = """
-def mutate(ai_code: str):
-    new_code = ai_code + "\n# A new line!"
-    return new_code
+import random
+
+def mutate(code):
+	lines = code.split("\n")
+	if lines:
+		index = random.randint(0, len(lines) - 1)
+		lines[index] += "  # mutated"
+	return "\n".join(lines)
+
 """
 
 result = sandbox.run_ai(ai_code)
