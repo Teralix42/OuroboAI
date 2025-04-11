@@ -5,9 +5,10 @@ from PyQt5.QtWidgets import (
 	QTextEdit, QSlider, QHBoxLayout, QSpinBox, QCheckBox
 )
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QTextCursor
 
 from sandbox import Sandbox
-from pythonHighlighter import PythonHighlighter
+import ide
 
 
 
@@ -21,7 +22,7 @@ class AIApp(QWidget):
 		self.initUI()
 
 		self.dark_mode_enabled = True  # Start in dark mode
-		self.apply_dark_mode()
+		ide.apply_dark_mode(self)
 		self.input_box_selector["slider"].setMaximum(0)
 		self.output_box_selector["spinbox"].setMaximum(0)
 
@@ -44,7 +45,7 @@ class AIApp(QWidget):
 		self.input_box.textChanged.connect(self.sync_input_box)
 		self.layout.addWidget(self.input_box)
 
-		self.highlighter = PythonHighlighter(self.input_box.document())
+		self.highlighter = ide.PythonHighlighter(self.input_box.document())
 
 		self.input_box_selector = self.create_selector("AI index", self.on_parent_change)
 		self.layout.addLayout(self.input_box_selector["layout"])
@@ -152,53 +153,9 @@ class AIApp(QWidget):
 
 	def toggle_dark_mode(self):
 		if self.theme_checkbox.isChecked():
-			self.apply_dark_mode()
+			ide.apply_dark_mode(self)
 		else:
 			self.setStyleSheet("")
-
-	
-
-	def apply_dark_mode(self):
-		dark_stylesheet = """
-			QWidget {
-				background-color: #121212;
-				color: #FFFFFF;
-			}
-			QTextEdit, QLineEdit {
-				background-color: #1E1E1E;
-				color: #D4D4D4;
-				border: 1px solid #333;
-			}
-			QPushButton {
-				background-color: #333;
-				color: #FFFFFF;
-				border: 1px solid #444;
-				padding: 5px;
-			}
-			QPushButton:hover {
-				background-color: #444;
-			}
-			QLabel {
-				color: #FFFFFF;
-			}
-			QSlider::groove:horizontal {
-				height: 6px;
-				background: #444;
-			}
-			QSlider::handle:horizontal {
-				background: #888;
-				border: 1px solid #555;
-				width: 14px;
-				margin: -4px 0;
-				border-radius: 7px;
-			}
-			QSpinBox {
-				background-color: #1E1E1E;
-				color: #D4D4D4;
-				border: 1px solid #333;
-			}
-		"""
-		self.setStyleSheet(dark_stylesheet)
 
 
 
