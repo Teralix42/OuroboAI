@@ -1,11 +1,15 @@
-from PyQt5.QtGui import QSyntaxHighlighter, QTextCharFormat, QColor, QFont
+from PyQt5.QtGui import QSyntaxHighlighter, QTextCharFormat, QColor, QFont, QTextCursor
+from PyQt5.QtWidgets import QTextEdit
+from PyQt5.QtCore import Qt
+
 import re
 
 class PythonHighlighter(QSyntaxHighlighter):
-	def __init__(self, document):
+	def __init__(self, document, app):
 		super().__init__(document)
 
 		self.rules = []
+		self.app = app
 
 		def make_format(color, italic=False, bold=False):
 			_format = QTextCharFormat()
@@ -56,9 +60,9 @@ class PythonHighlighter(QSyntaxHighlighter):
 		self.rules.append((re.compile(r"\b(\w+)\s*="), variable_format))
 
 	def highlightBlock(self, text):
-		# Default color (white)
+		# Default color
 		default_format = QTextCharFormat()
-		default_format.setForeground(QColor("white"))
+		default_format.setForeground(QColor("white" if self.app.dark_mode_enabled else "black"))
 		self.setFormat(0, len(text), default_format)
 
 		# Apply each rule
@@ -109,3 +113,36 @@ def apply_dark_mode(app):
 	}
 	"""
 	app.setStyleSheet(dark_stylesheet)
+
+
+class AutoIndentTextEdit(QTextEdit):
+	def keyPressEvent(self, event):
+		if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
+			cursor = self.textCursor()
+			cursor.insertText("\n" + self.get_previous_indent())
+			return  # Skip default behavior
+
+		if event.key() == Qt.Key_Space:
+			cursor = self.textCursor()
+			cursor.movePosition(QTextCursor.Left, QTextCursor.KeepAnchor, 3)  # look at last 3 before current
+
+			if cursor.selectedText() == "   ":
+				cursor.removeSelectedText()  # delete last 3
+				cursor.insertText("\t")  # insert tab instead
+				return
+
+		super().keyPressEvent(event)
+	
+	def insertFromMimeData(self, source):
+		text = source.text()
+		# Replace leading groups of four spaces with tabs for each line
+		converted_text = re.sub(r'^( {4})+', lambda m: '\t' * (len(m.group(0)) // 4), text, flags=re.MULTILINE)
+		self.textCursor().insertText(converted_text)
+
+	def get_previous_indent(self):
+		cursor = self.textCursor()
+		cursor.movePosition(QTextCursor.StartOfBlock)
+		prev_line = cursor.block().text()
+		indent = re.match(r'^\t*', prev_line).group()
+
+		return indent

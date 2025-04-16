@@ -5,7 +5,6 @@ from PyQt5.QtWidgets import (
 	QTextEdit, QSlider, QHBoxLayout, QSpinBox, QCheckBox
 )
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QTextCursor
 
 from sandbox import Sandbox
 import ide
@@ -41,11 +40,18 @@ class AIApp(QWidget):
 		self.status_label = QLabel("Welcome to the AI Evolution System", self)
 		self.layout.addWidget(self.status_label)
 
-		self.input_box = QTextEdit(self)
+		self.input_box = ide.AutoIndentTextEdit(self)  # QTextEdit(self)
 		self.input_box.textChanged.connect(self.sync_input_box)
 		self.layout.addWidget(self.input_box)
 
-		self.highlighter = ide.PythonHighlighter(self.input_box.document())
+		# Make a tab small
+		font_metrics = self.input_box.fontMetrics()
+		tab_width = font_metrics.width('    ')  # width of 4 spaces
+		self.input_box.setTabStopDistance(tab_width)
+
+
+		self.highlighter = ide.PythonHighlighter(self.input_box.document(), self)
+
 
 		self.input_box_selector = self.create_selector("AI index", self.on_parent_change)
 		self.layout.addLayout(self.input_box_selector["layout"])
@@ -75,8 +81,8 @@ class AIApp(QWidget):
 
 		# Add the layout to the main layout
 		self.layout.addLayout(theme_toggle_layout)
-	
-	
+
+
 	def create_selector(self, label, callback):
 		widgets = {}
 		layout = QHBoxLayout()
@@ -152,10 +158,12 @@ class AIApp(QWidget):
 	
 
 	def toggle_dark_mode(self):
-		if self.theme_checkbox.isChecked():
+		self.dark_mode_enabled = self.theme_checkbox.isChecked()
+		if self.dark_mode_enabled:
 			ide.apply_dark_mode(self)
 		else:
 			self.setStyleSheet("")
+		self.highlighter.rehighlight()
 
 
 
