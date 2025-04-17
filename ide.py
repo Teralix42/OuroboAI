@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QSyntaxHighlighter, QTextCharFormat, QColor, QFont, QTextCursor
+from PyQt5.QtGui import QSyntaxHighlighter, QTextCharFormat, QColor, QFont, QTextCursor, QFont
 from PyQt5.QtWidgets import QTextEdit
 from PyQt5.QtCore import Qt
 
@@ -115,6 +115,13 @@ def apply_dark_mode(app):
 	app.setStyleSheet(dark_stylesheet)
 
 
+def MonospaceFont():
+	monospace_font = QFont("Fira Code")  # Good cross-platform choice
+	monospace_font.setStyleHint(QFont.Monospace)
+	monospace_font.setFixedPitch(True)
+	monospace_font.setPointSize(10)
+	return monospace_font
+
 class AutoIndentTextEdit(QTextEdit):
 	def keyPressEvent(self, event):
 		if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
@@ -133,7 +140,7 @@ class AutoIndentTextEdit(QTextEdit):
 
 		super().keyPressEvent(event)
 	
-	def insertFromMimeData(self, source):
+	def insertFromMimeData(self, source): # Pasting
 		text = source.text()
 		# Replace leading groups of four spaces with tabs for each line
 		converted_text = re.sub(r'^( {4})+', lambda m: '\t' * (len(m.group(0)) // 4), text, flags=re.MULTILINE)
@@ -145,4 +152,10 @@ class AutoIndentTextEdit(QTextEdit):
 		prev_line = cursor.block().text()
 		indent = re.match(r'^\t*', prev_line).group()
 
+		if prev_line.strip().endswith(":"):
+			indent += "\t"
+
 		return indent
+
+def visual_length(line):
+	return len(line)

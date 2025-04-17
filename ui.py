@@ -15,72 +15,95 @@ class AIApp(QWidget):
 	def __init__(self):
 		super().__init__()
         
-		self.input_box_text = [""]
+		self.input_box_text = ["""import random
+
+def mutate(code):
+	lines = code.split("\\n")
+	if lines:
+		index = random.randint(0, len(lines) - 1)
+		lines[index] += "" if len(lines[index]) == 0 else "  "
+		lines[index] += "# mutation here!"
+	return "\\n".join(lines)
+"""]
 		self.output_box_text = [""]
+
+		self.dark_mode_enabled = True
+		ide.apply_dark_mode(self)
 
 		self.initUI()
 
-		self.dark_mode_enabled = True  # Start in dark mode
-		ide.apply_dark_mode(self)
+		self.sandbox = Sandbox()
+
 		self.input_box_selector["slider"].setMaximum(0)
 		self.output_box_selector["spinbox"].setMaximum(0)
-
-		self.sandbox = Sandbox()
 		
 		self.survivors = []
 
 
 	def initUI(self):
-        # Create UI components
+        # Window
 		self.setWindowTitle("OuroboroAI")
 		self.setGeometry(100, 100, 600, 400)
 
+		# Main Layout
 		self.layout = QVBoxLayout()
 
+		# Horizontal layout
+		self.horizontal_layout = QHBoxLayout()
+		self.horizontal_layout.addStretch()
+
+		# Title
 		self.status_label = QLabel("Welcome to the AI Evolution System", self)
 		self.layout.addWidget(self.status_label)
 
-		self.input_box = ide.AutoIndentTextEdit(self)  # QTextEdit(self)
+		# Input box
+		self.input_box = ide.AutoIndentTextEdit(self)
+		self.input_box.setText(self.input_box_text[0])
 		self.input_box.textChanged.connect(self.sync_input_box)
 		self.layout.addWidget(self.input_box)
 
-		# Make a tab small
+		# Font
+		self.input_box.setFont(ide.MonospaceFont())
 		font_metrics = self.input_box.fontMetrics()
-		tab_width = font_metrics.width('    ')  # width of 4 spaces
+		tab_width = font_metrics.width(' ') * 4  # Tab width is 4 spaces
 		self.input_box.setTabStopDistance(tab_width)
 
-
+		# Syntax highlighter
 		self.highlighter = ide.PythonHighlighter(self.input_box.document(), self)
 
-
-		self.input_box_selector = self.create_selector("AI index", self.on_parent_change)
+		# Selector
+		self.input_box_selector = self.create_selector("AI index", self.input_changed)
 		self.layout.addLayout(self.input_box_selector["layout"])
 
+		# Run Button
 		self.run_button = QPushButton('Run Iteration', self)
 		self.run_button.clicked.connect(self.run_iteration)
 		self.layout.addWidget(self.run_button)
 
+		# Output Box
 		self.output_box = QTextEdit(self)
 		self.output_box.setReadOnly(True)
 		self.layout.addWidget(self.output_box)
 
-		self.output_box_selector = self.create_selector("Child Index", self.on_child_change)
+		# Font
+		self.output_box.setFont(ide.MonospaceFont())
+		self.output_box.setTabStopDistance(tab_width)
+
+		# Selector
+		self.output_box_selector = self.create_selector("Child Index", self.output_changed)
 		self.layout.addLayout(self.output_box_selector["layout"])
 
-		self.setLayout(self.layout)
-
-
-		# Create a horizontal layout for right-aligned checkbox
-		theme_toggle_layout = QHBoxLayout()
-		theme_toggle_layout.addStretch()  # Push everything to the right
-
+		# Dark-mode Checkbox
 		self.theme_checkbox = QCheckBox("Dark Mode")
 		self.theme_checkbox.setChecked(True)
 		self.theme_checkbox.stateChanged.connect(self.toggle_dark_mode)
-		theme_toggle_layout.addWidget(self.theme_checkbox)
+		self.horizontal_layout.addWidget(self.theme_checkbox)
 
-		# Add the layout to the main layout
-		self.layout.addLayout(theme_toggle_layout)
+		# Main Layout
+		self.setLayout(self.layout)
+
+		# Add Horizontal Layout to Main Layout
+		self.layout.addLayout(self.horizontal_layout)
 
 
 	def create_selector(self, label, callback):
@@ -114,10 +137,18 @@ class AIApp(QWidget):
         # Setup the lists of texts for output and input boxes
 		self.output_box_text.clear()
 		for ai, validated, error_message, score in new_generation:
-			result = f"AI: {ai}\n"
-			result += f"Validated: {validated}\n"
-			result += f"Error: {error_message if error_message else 'None'}\n"
-			result += f"Score: {score}\n\n"
+			formatted_ai = ai.replace('\t', '    ')
+			longest_line = max(ide.visual_length(line) for line in formatted_ai.splitlines())
+			horizontal_line = "─" * (longest_line + 2)
+			formatted_ai = "\n".join(f"│ {line}" + " " * (longest_line - ide.visual_length(line) + 1) + "│" for line in formatted_ai.splitlines())
+			
+			result = f"<b><u>AI</u>:</b><br>"
+			result += f"┌{horizontal_line}┐<br>"
+			result += f"<span style='font-family: monospace; white-space: pre;'>{formatted_ai}</span><br>"
+			result += f"└{horizontal_line}┘<br>"
+			if not validated:
+				result += f"<b><u>Error</u>:</b> {error_message if error_message else 'None'}<br>"
+			result += f"<b><u>Score</u>:</b> {score}"
 			self.output_box_text.append(result)
 		
 		self.input_box_text.clear()
@@ -132,23 +163,23 @@ class AIApp(QWidget):
 		
 
 		# Set selectors back to O
-		self.on_parent_change(0)
-		self.on_child_change(0)
+		self.input_changed(0)
+		self.output_changed(0)
 
 
 		self.status_label.setText("Iteration completed!")
 	
 
-	def on_parent_change(self, index):
+	def input_changed(self, index):
 		if 0 <= index < len(self.input_box_text):
 			code = self.input_box_text[index]
 			self.input_box.setText(code)
 
 
-	def on_child_change(self, index):
+	def output_changed(self, index):
 		if 0 <= index < len(self.output_box_text):
 			code = self.output_box_text[index]
-			self.output_box.setText(code)
+			self.output_box.setHtml(code)  # Because we format the output with HTML instead of normal (<b> stuff 'n' all)
 	
 
 	def sync_input_box(self):

@@ -9,7 +9,6 @@ def mutate(code):
 		index = random.randint(0, len(lines) - 1)
 		lines[index] += "  # mutated"
 	return "\n".join(lines)
-
 """
 
 result = sandbox.run_ai(ai_code)

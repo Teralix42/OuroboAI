@@ -14,39 +14,39 @@ class Sandbox:
 
 
 	# returns a list of tuples representing the AI children, containing the code, if it's validated or not, the error message if not, and its score
-	def iteration(self, parents: list[str]) -> list[tuple[str, float]]:
-		new_generation = [(parent_code, True, None, 0) for parent_code in parents]
+	def iteration(self, ais: list[str]) -> list[tuple[str, float]]:
+		new_gen = [(ai, True, None, 0) for ai in ais]
 		
 		# Duplicate survivors to reach desired population
-		while len(new_generation) < self.population_size:
-			parent_code = random.choice(parents)
-			new_generation.append((parent_code, True, None, 0))
+		while len(new_gen) < self.population_size:
+			parent_code = random.choice(ais)
+			new_gen.append((parent_code, True, None, 0))
 		
-		for ai in range(len(new_generation)):
-			child, validated, error_message = self.run_ai(new_generation[ai][0])
-			new_generation[ai] = (child, validated, error_message, self.evaluate(child) if validated else 0)
+		for ai in range(len(new_gen)):
+			out_ai, validated, error_message = self.run_ai(new_gen[ai][0])
+			new_gen[ai] = (out_ai, validated, error_message, self.evaluate(out_ai) if validated else 0)
 		
 		# Sort by score, highest first
-		new_generation.sort(key=lambda x: x[3], reverse=True)
+		new_gen.sort(key=lambda x: x[3], reverse=True)
 		
 		# Return top performers (can tweak how many)
-		return new_generation
+		return new_gen
 
 
 	# returns a tuple representing the mutated ai, containing the code, if it's validated or not, and the error message if not
-	def run_ai(self, ai_code: str) -> tuple[str | None, bool, str | None]:
+	def run_ai(self, ai: str) -> tuple[str | None, bool, str | None]:
 		self.sandbox = {}
 		gc.collect()
 
 		try:
-			exec(ai_code, self.sandbox)
-			mutated_code = self.sandbox["mutate"](ai_code)
+			exec(ai, self.sandbox)
+			mutated_code = self.sandbox["mutate"](ai)
 
 			validation, error_message = self.validate(mutated_code)
 			return mutated_code, validation, error_message
 		
 		except Exception as e:
-			return None, False, f"Error during mutation execution: {e}"
+			return "No output", False, f"Error during mutation execution: {e}"
 
 
 	# returns a tuple representing the AI's validation, containing if it's validated or not and the error message if not
