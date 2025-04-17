@@ -1,15 +1,16 @@
-from PyQt5.QtGui import QSyntaxHighlighter, QTextCharFormat, QColor, QFont, QTextCursor, QFont
+from PyQt5.QtGui import QSyntaxHighlighter, QTextCharFormat, QColor, QTextCursor, QFont
 from PyQt5.QtWidgets import QTextEdit
 from PyQt5.QtCore import Qt
 
 import re
 
 class PythonHighlighter(QSyntaxHighlighter):
-	def __init__(self, document, app):
+	def __init__(self, document, dark_mode, app):
 		super().__init__(document)
 
 		self.rules = []
 		self.app = app
+		self.dark_mode_enabled = dark_mode
 
 		def make_format(color, italic=False, bold=False):
 			_format = QTextCharFormat()
@@ -70,6 +71,11 @@ class PythonHighlighter(QSyntaxHighlighter):
 			for match in pattern.finditer(text):
 				start, end = match.span(1) if match.lastindex else match.span()
 				self.setFormat(start, end - start, fmt)
+	
+	def set_dark_mode(self, enabled):
+		self.dark_mode_enabled = enabled
+		self.rehighlight()
+
 
 
 def apply_dark_mode(app):
@@ -144,7 +150,8 @@ class AutoIndentTextEdit(QTextEdit):
 		text = source.text()
 		# Replace leading groups of four spaces with tabs for each line
 		converted_text = re.sub(r'^( {4})+', lambda m: '\t' * (len(m.group(0)) // 4), text, flags=re.MULTILINE)
-		self.textCursor().insertText(converted_text)
+		cursor = self.textCursor()
+		cursor.insertText(converted_text)
 
 	def get_previous_indent(self):
 		cursor = self.textCursor()
@@ -155,6 +162,8 @@ class AutoIndentTextEdit(QTextEdit):
 		if prev_line.strip().endswith(":"):
 			indent += "\t"
 
+		if not prev_line:
+			return ""
 		return indent
 
 def visual_length(line):

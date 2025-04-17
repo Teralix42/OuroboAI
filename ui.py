@@ -48,13 +48,18 @@ def mutate(code):
 		# Main Layout
 		self.layout = QVBoxLayout()
 
-		# Horizontal layout
-		self.horizontal_layout = QHBoxLayout()
-		self.horizontal_layout.addStretch()
-
-		# Title
+		# Create toolbox
+		self.header_layout = QHBoxLayout()
 		self.status_label = QLabel("Welcome to the AI Evolution System", self)
-		self.layout.addWidget(self.status_label)
+		self.header_layout.addWidget(self.status_label)
+		self.header_layout.addStretch()
+		self.theme_checkbox = QCheckBox("Dark Mode")
+		self.theme_checkbox.setChecked(True)
+		self.theme_checkbox.stateChanged.connect(self.toggle_dark_mode)
+		self.header_layout.addWidget(self.theme_checkbox)
+		self.layout.addLayout(self.header_layout)
+
+		# TODO : Add save and load button, iteration display + selector, settings menu... that kinda stuff.
 
 		# Input box
 		self.input_box = ide.AutoIndentTextEdit(self)
@@ -69,7 +74,7 @@ def mutate(code):
 		self.input_box.setTabStopDistance(tab_width)
 
 		# Syntax highlighter
-		self.highlighter = ide.PythonHighlighter(self.input_box.document(), self)
+		self.highlighter = ide.PythonHighlighter(self.input_box.document(), self.dark_mode_enabled, self)
 
 		# Selector
 		self.input_box_selector = self.create_selector("AI index", self.input_changed)
@@ -93,17 +98,8 @@ def mutate(code):
 		self.output_box_selector = self.create_selector("Child Index", self.output_changed)
 		self.layout.addLayout(self.output_box_selector["layout"])
 
-		# Dark-mode Checkbox
-		self.theme_checkbox = QCheckBox("Dark Mode")
-		self.theme_checkbox.setChecked(True)
-		self.theme_checkbox.stateChanged.connect(self.toggle_dark_mode)
-		self.horizontal_layout.addWidget(self.theme_checkbox)
-
 		# Main Layout
 		self.setLayout(self.layout)
-
-		# Add Horizontal Layout to Main Layout
-		self.layout.addLayout(self.horizontal_layout)
 
 
 	def create_selector(self, label, callback):
@@ -166,7 +162,7 @@ def mutate(code):
 		self.input_changed(0)
 		self.output_changed(0)
 
-
+		# Update status label
 		self.status_label.setText("Iteration completed!")
 	
 
@@ -194,7 +190,8 @@ def mutate(code):
 			ide.apply_dark_mode(self)
 		else:
 			self.setStyleSheet("")
-		self.highlighter.rehighlight()
+
+		self.highlighter.set_dark_mode(self.dark_mode_enabled)
 
 
 

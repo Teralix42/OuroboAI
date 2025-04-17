@@ -14,7 +14,7 @@ class Sandbox:
 
 
 	# returns a list of tuples representing the AI children, containing the code, if it's validated or not, the error message if not, and its score
-	def iteration(self, ais: list[str]) -> list[tuple[str, float]]:
+	def iteration(self, ais: list[str]) -> list[tuple[str, bool, str | None, float]]:
 		new_gen = [(ai, True, None, 0) for ai in ais]
 		
 		# Duplicate survivors to reach desired population
@@ -46,7 +46,7 @@ class Sandbox:
 			return mutated_code, validation, error_message
 		
 		except Exception as e:
-			return "No output", False, f"Error during mutation execution: {e}"
+			return "None", False, f"Error during mutation execution: {e}"
 
 
 	# returns a tuple representing the AI's validation, containing if it's validated or not and the error message if not
