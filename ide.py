@@ -1,8 +1,10 @@
-from PyQt5.QtGui import QSyntaxHighlighter, QTextCharFormat, QColor, QTextCursor, QFont
+from PyQt5.QtGui import QSyntaxHighlighter, QTextCharFormat, QColor, QTextCursor, QFont, QFontDatabase
 from PyQt5.QtWidgets import QTextEdit
 from PyQt5.QtCore import Qt
 
 import re
+
+font = "Consolas"
 
 class PythonHighlighter(QSyntaxHighlighter):
 	def __init__(self, document, dark_mode, app):
@@ -121,8 +123,9 @@ def apply_dark_mode(app):
 	app.setStyleSheet(dark_stylesheet)
 
 
-def MonospaceFont():
-	monospace_font = QFont("Fira Code")  # Good cross-platform choice
+# Cascadia Code; Cascadia Mono; 
+def set_font(font):
+	monospace_font = QFont(font if font in QFontDatabase().families() else "Consolas")
 	monospace_font.setStyleHint(QFont.Monospace)
 	monospace_font.setFixedPitch(True)
 	monospace_font.setPointSize(10)
@@ -166,5 +169,44 @@ class AutoIndentTextEdit(QTextEdit):
 			return ""
 		return indent
 
-def visual_length(line):
-	return len(line)
+
+# takes main heading as str, and sub_boxes as a list of tuples(Each tuple contains a heading and the box's content).
+def create_box(heading, sub_boxes):
+
+	def strip_html_tags(text):
+			"""Removes HTML tags from a string."""
+			return re.sub(r"<[^>]*>", "", text)
+
+	# Determine the width of the boxes based on the longest line in the content
+	contents = []
+	headings = [heading]
+	for sub_heading, content in sub_boxes:
+		contents.extend(content.splitlines()) # Extend, because it takes not 1 but multiple values
+		headings.append(sub_heading + "    ")
+	longest_line = max(len(line) for line in contents) if contents else 1
+	longest_heading = max(len(heading) for heading in headings) if headings else 1
+	main_box_width = max(longest_line + 6, longest_heading + 2)
+	sub_box_width = main_box_width - 4
+
+	# Create the top of the box
+	result = f"╔{'═' * main_box_width}╗<br>"
+	result += f"║{' ' * ((main_box_width - len(heading)) // 2)}<b><u>{heading}</b></u>{' ' * ((main_box_width - len(heading) + 1) // 2)}║<br>"
+	result += f"╠{'═' * main_box_width}╣<br>"
+
+	# Add each sub-box
+	for sub_heading, content in sub_boxes:
+		# Sub-box heading
+		result += f"║ ┌─╴<b>{sub_heading}</b>╶{'─' * (sub_box_width - len(sub_heading) - 3)}┐ ║<br>"
+		# Sub-box content
+		for line in content.splitlines():
+			stripped_line = strip_html_tags(line)
+			result += f"║ │ {line}{' ' * (sub_box_width - len(stripped_line) - 1)}│ ║<br>"
+		result += f"║ └{'─' * (sub_box_width)}┘ ║<br>"
+
+	# Create the bottom of the box
+	result += f"╚{'═' * main_box_width}╝"
+
+	# Replace spaces with non-breaking spaces for HTML formatting
+	result = result.replace(" ", "&nbsp;")
+
+	return result

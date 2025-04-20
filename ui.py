@@ -1,10 +1,11 @@
 import sys
 
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QTextOption
 from PyQt5.QtWidgets import (
 	QApplication, QWidget, QVBoxLayout, QLabel, QPushButton,
 	QTextEdit, QSlider, QHBoxLayout, QSpinBox, QCheckBox
 )
-from PyQt5.QtCore import Qt
 
 from sandbox import Sandbox
 import ide
@@ -15,6 +16,7 @@ class AIApp(QWidget):
 	def __init__(self):
 		super().__init__()
         
+		self.iteration = 1
 		self.input_box_text = ["""import random
 
 def mutate(code):
@@ -43,7 +45,7 @@ def mutate(code):
 	def initUI(self):
         # Window
 		self.setWindowTitle("OuroboroAI")
-		self.setGeometry(100, 100, 600, 400)
+		self.setGeometry(100, 100, 750, 500)
 
 		# Main Layout
 		self.layout = QVBoxLayout()
@@ -65,10 +67,11 @@ def mutate(code):
 		self.input_box = ide.AutoIndentTextEdit(self)
 		self.input_box.setText(self.input_box_text[0])
 		self.input_box.textChanged.connect(self.sync_input_box)
+		self.input_box.setWordWrapMode(QTextOption.NoWrap)  # Disable text wrapping
 		self.layout.addWidget(self.input_box)
 
 		# Font
-		self.input_box.setFont(ide.MonospaceFont())
+		self.input_box.setFont(ide.set_font(ide.font))
 		font_metrics = self.input_box.fontMetrics()
 		tab_width = font_metrics.width(' ') * 4  # Tab width is 4 spaces
 		self.input_box.setTabStopDistance(tab_width)
@@ -88,10 +91,11 @@ def mutate(code):
 		# Output Box
 		self.output_box = QTextEdit(self)
 		self.output_box.setReadOnly(True)
+		self.output_box.setWordWrapMode(QTextOption.NoWrap)  # Disable text wrapping
 		self.layout.addWidget(self.output_box)
 
 		# Font
-		self.output_box.setFont(ide.MonospaceFont())
+		self.output_box.setFont(ide.set_font(ide.font))
 		self.output_box.setTabStopDistance(tab_width)
 
 		# Selector
@@ -132,21 +136,22 @@ def mutate(code):
 
         # Setup the lists of texts for output and input boxes
 		self.output_box_text.clear()
-		for ai, validated, error_message, score in new_generation:
+		for i, (ai, validated, error_message, score) in enumerate(new_generation, start=1):
 			formatted_ai = ai.replace('\t', '    ')
-			longest_line = max(ide.visual_length(line) for line in formatted_ai.splitlines())
-			horizontal_line = "─" * (longest_line + 2)
-			formatted_ai = "\n".join(f"│ {line}" + " " * (longest_line - ide.visual_length(line) + 1) + "│" for line in formatted_ai.splitlines())
 			
-			result = f"<b><u>AI</u>:</b><br>"
-			result += f"┌{horizontal_line}┐<br>"
-			result += f"<span style='font-family: monospace; white-space: pre;'>{formatted_ai}</span><br>"
-			result += f"└{horizontal_line}┘<br>"
-			if not validated:
-				result += f"<b><u>Error</u>:</b> {error_message if error_message else 'None'}<br>"
-			result += f"<b><u>Score</u>:</b> {score}"
+			heading = f"ITERATION-{self.iteration}-{i}"
+			sub_boxes = [
+				("Output", formatted_ai),
+				("Evaluation", f"""<u>Validation</u>:       {"Success" if validated else "Failed"}
+<u>Score</u>:            {score}
+<u>Error</u>:            {error_message if not validated else "None"}"""),
+			]
+
+			result = ide.create_box(heading, sub_boxes)
 			self.output_box_text.append(result)
 		
+
+
 		self.input_box_text.clear()
 		self.input_box_text[:] = [ai for ai, _, _, _ in new_generation[:int(self.sandbox.population_size / 2)]]
 		
@@ -163,7 +168,8 @@ def mutate(code):
 		self.output_changed(0)
 
 		# Update status label
-		self.status_label.setText("Iteration completed!")
+		self.status_label.setText(f"Iteration {self.iteration} completed!")
+		self.iteration += 1
 	
 
 	def input_changed(self, index):

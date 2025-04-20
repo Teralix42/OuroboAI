@@ -1,4 +1,4 @@
-from sandbox import Sandbox as sandbox
+import ide
 
 ai_code = """
 import random
@@ -11,5 +11,11 @@ def mutate(code):
 	return "\n".join(lines)
 """
 
-result = sandbox.run_ai(ai_code)
-print("Code not runnable" if result == None else result)
+heading = "Hello World!"
+sub_boxes = [
+    ("sub1", "hello"),
+    ("sub2", "hi")
+]
+
+formatted_box = ide.create_box(heading, sub_boxes)
+print(formatted_box)
