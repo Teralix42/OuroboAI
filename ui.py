@@ -13,20 +13,11 @@ import ide
 
 
 class AIApp(QWidget):
-	def __init__(self):
+	def __init__(self, original):
 		super().__init__()
         
 		self.iteration = 1
-		self.input_box_text = ["""import random
-
-def mutate(code):
-	lines = code.split("\\n")
-	if lines:
-		index = random.randint(0, len(lines) - 1)
-		lines[index] += "" if len(lines[index]) == 0 else "  "
-		lines[index] += "# mutation here!"
-	return "\\n".join(lines)
-"""]
+		self.input_box_text = [original]
 		self.output_box_text = [""]
 
 		self.dark_mode_enabled = True
@@ -201,11 +192,17 @@ def mutate(code):
 
 
 
-def main():
+def main(original="""import random
+
+def mutate(code):
+	lines = code.split("\\n")
+	if lines:
+		index = random.randint(0, len(lines) - 1)
+		lines[index] += "" if len(lines[index]) == 0 else "  "
+		lines[index] += "# mutation here!"
+	return "\\n".join(lines)
+"""):
 	app = QApplication(sys.argv)
-	ex = AIApp()
+	ex = AIApp(original)
 	ex.show()
 	sys.exit(app.exec_())
-
-if __name__ == '__main__':
-	main()
