@@ -31,13 +31,11 @@ This project is a work-in-progress **Recursive Self-Improving system (RSI)** whe
 3. Each valid mutation is evaluated with a placeholder `evaluate()` function for now.
 4. The top scorers become the next generation.
 
-> It's basically natural selection... but with Python code.
-
 ---
 
 ## 🧪 Evaluation
 
-Evaluation is currently random (`random.uniform(0, 1)`) — **you can and should replace this** with your own scoring logic based on the AI’s behavior or goals.
+Evaluation is currently random (`random.uniform(0, 1)`) — If you want to use this code to create your own RSI's, **you can and should replace this** with your own scoring logic based on the AI’s behavior or goals.
 
 ---
 
@@ -48,7 +46,7 @@ To keep things safe and sane, AIs that:
 - Don’t define a valid `mutate()` function
 - Crash during execution
 
-...are **rejected**. Dumb AIs may be logged in the future, just for laughs.
+...are **rejected**. "Dumb" AIs may be logged in the future, just for laughs.
 
 ---
 
@@ -60,7 +58,7 @@ RSIs are systems that can:
 - Improve with each generation
 - Choose the "fittest" versions to continue evolving
 
-This framework lays the groundwork for those concepts in a contained and fun environment.
+This framework lays the groundwork for those concepts in a contained environment.
 
 ---
 
@@ -73,14 +71,19 @@ This framework lays the groundwork for those concepts in a contained and fun env
 
 ## 🗂 Project Structure
 
-project-root/ ├── main.py # Launches the GUI ├── sandbox.py # Handles mutation, validation, evaluation, and iteration logic └── README.md # You're reading this!
+project-root/
+├── main.py # Launches the GUI and organises everything overall
+├── sandbox.py # Handles mutation, validation, evaluation, and iteration logic
+├── ide.py # The dev environment, where you can write/modify RSI AI's
+├── ui.py # Creates the UI and handles its events
+└── README.md # What you're reading
 
 ---
 
 ## 🧙‍♂️ Author
 
-Crafted by **NeilAnami22**, possibly a 52 years old fat dude named chuck that lives in his moms garage, but maybe not.  
-Helper: ChatGPT (I'm mostly here drinking coffee while it does the real work).
+Crafted by **Teralix42**, a 15 y/o dev (Formerly known as NeilAnami22--or rather just not known at all).  
+Helper: ChatGPT (I'm mostly here looking at it code, and then fixing it when it manages to throw 53 errors at the console).
 
 ---
 
@@ -95,4 +98,4 @@ Helper: ChatGPT (I'm mostly here drinking coffee while it does the real work).
 
 ## ⚠️ Disclaimer
 
-This project is for educational and experimental purposes. It is **not intended** to make superintelligent rogue AIs... yet. 😉
+This project is for educational and experimental purposes. It is **not intended** to make superintelligent rogue AIs... yet(*I* won't blame you if you do)
