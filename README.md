@@ -1,6 +1,6 @@
-# 🧠 OuroboroAI
+# 🧠 OuroboAI
 
-Welcome to **OuroboroAI** — a lightweight Python-based framework for building **self-evolving AIs**.  
+Welcome to **OuroboAI** — a lightweight Python-based framework for building **self-evolving AIs**.  
 This project is a work-in-progress **Recursive Self-Improving system (RSI)** where AIs mutate their own code, get evaluated, and evolve over time.
 
 ---
@@ -72,9 +72,9 @@ This framework lays the groundwork for those concepts in a contained environment
 ## 🗂 Project Structure
 
 project-root/
-├── main.py # Launches the GUI and organises everything overall
+├── main.py # Just launches the UI
 ├── sandbox.py # Handles mutation, validation, evaluation, and iteration logic
-├── ide.py # The dev environment, where you can write/modify RSI AI's
+├── ide.py # Utility functions to help the UI build the IDE, where you can create/modify RSI AI's
 ├── ui.py # Creates the UI and handles its events
 └── README.md # What you're reading
 
@@ -82,8 +82,8 @@ project-root/
 
 ## 🧙‍♂️ Author
 
-Crafted by **Teralix42**, a 15 y/o dev (Formerly known as NeilAnami22--or rather just not known at all).  
-Helper: ChatGPT (I'm mostly here looking at it code, and then fixing it when it manages to throw 53 errors at the console).
+Crafted by **Teralix42**, a 15 y/o dev (Formerly known as NeilAnami22—or rather just not known at all).  
+Trusty sidekick: ChatGPT (I'm mostly here looking at it code, and then fixing it when it manages to throw 53 errors at the console).
 
 ---
 
