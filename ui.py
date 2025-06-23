@@ -1,4 +1,6 @@
 import sys
+import json
+import os
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QTextOption
@@ -46,13 +48,23 @@ class AIApp(QWidget):
 		self.status_label = QLabel("Welcome to the AI Evolution System", self)
 		self.header_layout.addWidget(self.status_label)
 		self.header_layout.addStretch()
+
 		self.theme_checkbox = QCheckBox("Dark Mode")
 		self.theme_checkbox.setChecked(True)
 		self.theme_checkbox.stateChanged.connect(self.toggle_dark_mode)
 		self.header_layout.addWidget(self.theme_checkbox)
+
+		self.save_button = QPushButton("💾 Save Session")
+		self.save_button.clicked.connect(self.save_session)
+		self.header_layout.addWidget(self.save_button)
+
+		self.load_button = QPushButton("📂 Load Session")
+		self.load_button.clicked.connect(self.load_session)
+		self.header_layout.addWidget(self.load_button)
+
 		self.layout.addLayout(self.header_layout)
 
-		# TODO : Add save and load button, iteration display + selector, settings menu... that kinda stuff.
+		# TODO : Add settings menu and other tools
 
 		# Input box
 		self.input_box = ide.AutoIndentTextEdit(self)
@@ -189,6 +201,39 @@ class AIApp(QWidget):
 			self.setStyleSheet("")
 
 		self.highlighter.set_dark_mode(self.dark_mode_enabled)
+	
+
+	def save_session(self):
+		data = {
+			"iteration": self.iteration,
+			"input_box_text": self.input_box_text,
+			"survivors": self.survivors
+		}
+		with open("session.json", "w") as f:
+			json.dump(data, f, indent=4)
+		self.status_label.setText("Session saved.")
+
+
+	def load_session(self):
+		if not os.path.exists("session.json"):
+			self.status_label.setText("No session file found.")
+			return
+		
+		with open("session.json", "r") as f:
+			data = json.load(f)
+
+		self.iteration = data.get("iteration", 1)
+		self.input_box_text = data.get("input_box_text", [""])
+		self.survivors = data.get("survivors", [])
+
+		# Update selectors
+		for selector, data_list in [(self.input_box_selector, self.input_box_text)]:
+			max_index = max(0, len(data_list) - 1)
+			selector["slider"].setMaximum(max_index)
+			selector["spinbox"].setMaximum(max_index)
+
+		self.input_changed(0)
+		self.status_label.setText(f"Session loaded (Iteration {self.iteration}).")
 
 
 
