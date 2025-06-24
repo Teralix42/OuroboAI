@@ -28,7 +28,7 @@ This project is a work-in-progress **Recursive Self-Improving system (RSI)** whe
 
 1. You give it an initial AI with a `mutate(code: str) -> str` function.
 2. The sandbox runs the code, executes `mutate`, and checks that it returns a valid new AI.
-3. Each valid mutation is evaluated with a placeholder `evaluate()` function for now.
+3. Each valid mutation is evaluated with a placeholder `evaluate()` function for now(random).
 4. The top scorers become the next generation.
 
 ---
@@ -76,7 +76,8 @@ project-root/
 ├── sandbox.py # Handles mutation, validation, evaluation, and iteration logic
 ├── ide.py # Utility functions to help the UI build the IDE, where you can create/modify RSI AI's
 ├── ui.py # Creates the UI and handles its events
-└── README.md # What you're reading
+├── README.md # What you're reading
+└── sessions # Where saves are stored
 
 ---
 
@@ -92,10 +93,11 @@ Trusty sidekick: ChatGPT (I'm mostly here looking at it code, and then fixing it
 - Replace `evaluate()` with actual evaluation logic
 - Save invalid ("dumb") AIs for analysis/fun
 - Add logging and error tracking
-- Expand UI for more control
+- Expand UI toolbox and add settings for more control
+- **Create an RSI AI**
 
 ---
 
 ## ⚠️ Disclaimer
 
-This project is for educational and experimental purposes. It is **not intended** to make superintelligent rogue AIs... yet(*I* won't blame you if you do)
+This project is for educational and experimental purposes. It is **not intended** to make superintelligent rogue AIs... yet(I mean, *I* won't blame you if you make one...)
