@@ -6,7 +6,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QTextOption
 from PyQt5.QtWidgets import (
 	QApplication, QWidget, QVBoxLayout, QLabel, QPushButton,
-	QTextEdit, QSlider, QHBoxLayout, QSpinBox, QCheckBox
+	QTextEdit, QSlider, QHBoxLayout, QSpinBox, QCheckBox, QInputDialog
 )
 
 from sandbox import Sandbox
@@ -17,6 +17,8 @@ import ide
 class AIApp(QWidget):
 	def __init__(self, original):
 		super().__init__()
+		
+		os.makedirs("sessions", exist_ok=True)
         
 		self.iteration = 1
 		self.input_box_text = [original]
@@ -54,11 +56,11 @@ class AIApp(QWidget):
 		self.theme_checkbox.stateChanged.connect(self.toggle_dark_mode)
 		self.header_layout.addWidget(self.theme_checkbox)
 
-		self.save_button = QPushButton("💾 Save Session")
+		self.save_button = QPushButton("📝 Save")
 		self.save_button.clicked.connect(self.save_session)
 		self.header_layout.addWidget(self.save_button)
 
-		self.load_button = QPushButton("📂 Load Session")
+		self.load_button = QPushButton("📄 Load")
 		self.load_button.clicked.connect(self.load_session)
 		self.header_layout.addWidget(self.load_button)
 
@@ -204,22 +206,51 @@ class AIApp(QWidget):
 	
 
 	def save_session(self):
+		dialog = CustomInputDialog(self, "Save session", "Enter session name:", ok_text="Save", cancel_text="Cancel")
+		name, ok = dialog.exec_()
+		if not ok or not name:
+			self.status_label.setText(f"Save cancelled")
+			return
+
 		data = {
 			"iteration": self.iteration,
 			"input_box_text": self.input_box_text,
 			"survivors": self.survivors
 		}
-		with open("session.json", "w") as f:
+
+		with open(f"sessions/{name}.json", "w") as f:
 			json.dump(data, f, indent=4)
-		self.status_label.setText("Session saved.")
+
+		self.status_label.setText(f"Session '{name}' saved.")
 
 
 	def load_session(self):
-		if not os.path.exists("session.json"):
-			self.status_label.setText("No session file found.")
+		files = [f[:-5] for f in os.listdir("sessions") if f.endswith(".json")]
+		if not files:
+			self.status_label.setText("No saved sessions.")
 			return
-		
-		with open("session.json", "r") as f:
+
+		dialog = CustomInputDialog(
+			self,
+			title="Load Session",
+			label="Select session:",
+			ok_text="Load",
+			cancel_text="Cancel",
+			items=files
+		)
+
+		value, accepted = dialog.exec_()
+		if not accepted:
+			self.status_label.setText(f"Loading cancelled.")
+			return
+		name = value
+		path = f"sessions/{name}.json"
+
+		if not os.path.exists(path):
+			self.status_label.setText(f"Session '{name}' not found.")
+			return
+
+		with open(path, "r") as f:
 			data = json.load(f)
 
 		self.iteration = data.get("iteration", 1)
@@ -233,8 +264,31 @@ class AIApp(QWidget):
 			selector["spinbox"].setMaximum(max_index)
 
 		self.input_changed(0)
-		self.status_label.setText(f"Session loaded (Iteration {self.iteration}).")
+		self.status_label.setText(f"Session '{name}' loaded (Iteration {self.iteration}).")
 
+
+class CustomInputDialog(QInputDialog):
+    def __init__(self, parent=None, title="", label="", ok_text="OK", cancel_text="Cancel", items=None):
+        super().__init__(parent)
+        self.setWindowTitle(title)
+        self.setLabelText(label)
+
+        if items is not None:
+            self.setComboBoxItems(items)
+
+        # Correctly set input mode
+        self.setInputMode(QInputDialog.TextInput)  # Or QInputDialog.ComboBox if needed
+
+        # Customize button texts
+        self.setOkButtonText(ok_text)
+        self.setCancelButtonText(cancel_text)
+
+    def exec_(self):
+        result = super().exec_()
+        if self.inputMode() == QInputDialog.TextInput:
+            return self.textValue(), result == QInputDialog.Accepted
+        else:
+            return self.currentText(), result == QInputDialog.Accepted
 
 
 def main(original="""import random
@@ -247,6 +301,7 @@ def mutate(code):
 		lines[index] += "# mutation here!"
 	return "\\n".join(lines)
 """):
+	QApplication.setStyle("Fusion")
 	app = QApplication(sys.argv)
 	ex = AIApp(original)
 	ex.show()

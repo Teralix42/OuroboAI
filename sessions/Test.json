@@ -1,0 +1,7 @@
+{
+    "iteration": 1,
+    "input_box_text": [
+        "import random\n\ndef mutate(code):\n\tlines = code.split(\"\\n\")\n\tif lines:\n\t\tindex = random.randint(0, len(lines) - 1)\n\t\tlines[index] += \"\" if len(lines[index]) == 0 else \"  \"\n\t\tlines[index] += \"# mutation here!\"\n\treturn \"\\n\".join(lines)\n"
+    ],
+    "survivors": []
+}

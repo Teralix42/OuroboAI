@@ -1,0 +1,17 @@
+{
+    "iteration": 3,
+    "input_box_text": [
+        "import random\n# mutation here!\ndef mutate(code):\n\tlines = code.split(\"\\n\")  # mutation here!\n\tif lines:\n\t\tindex = random.randint(0, len(lines) - 1)\n\t\tlines[index] += \"\" if len(lines[index]) == 0 else \"  \"\n\t\tlines[index] += \"# mutation here!\"\n\treturn \"\\n\".join(lines)\n",
+        "import random\n# mutation here!\ndef mutate(code):\n\tlines = code.split(\"\\n\")\n\tif lines:  # mutation here!\n\t\tindex = random.randint(0, len(lines) - 1)\n\t\tlines[index] += \"\" if len(lines[index]) == 0 else \"  \"\n\t\tlines[index] += \"# mutation here!\"\n\treturn \"\\n\".join(lines)\n",
+        "import random  # mutation here!\n\ndef mutate(code):\n\tlines = code.split(\"\\n\")\n\tif lines:\n\t\tindex = random.randint(0, len(lines) - 1)\n\t\tlines[index] += \"\" if len(lines[index]) == 0 else \"  \"\n\t\tlines[index] += \"# mutation here!\"  # mutation here!\n\treturn \"\\n\".join(lines)\n",
+        "import random\n\ndef mutate(code):\n\tlines = code.split(\"\\n\")\n\tif lines:  # mutation here!\n\t\tindex = random.randint(0, len(lines) - 1)\n\t\tlines[index] += \"\" if len(lines[index]) == 0 else \"  \"\n\t\tlines[index] += \"# mutation here!\"\n\treturn \"\\n\".join(lines)\n# mutation here!",
+        "import random\n\ndef mutate(code):\n\tlines = code.split(\"\\n\")  # mutation here!\n\tif lines:  # mutation here!\n\t\tindex = random.randint(0, len(lines) - 1)\n\t\tlines[index] += \"\" if len(lines[index]) == 0 else \"  \"\n\t\tlines[index] += \"# mutation here!\"\n\treturn \"\\n\".join(lines)\n"
+    ],
+    "survivors": [
+        "import random\n\ndef mutate(code):\n\tlines = code.split(\"\\n\")\n\tif lines:\n\t\tindex = random.randint(0, len(lines) - 1)\n\t\tlines[index] += \"\" if len(lines[index]) == 0 else \"  \"\n\t\tlines[index] += \"# mutation here!\"  # mutation here!\n\treturn \"\\n\".join(lines)\n",
+        "import random\n\ndef mutate(code):\n\tlines = code.split(\"\\n\")\n\tif lines:\n\t\tindex = random.randint(0, len(lines) - 1)\n\t\tlines[index] += \"\" if len(lines[index]) == 0 else \"  \"\n\t\tlines[index] += \"# mutation here!\"  # mutation here!\n\treturn \"\\n\".join(lines)\n",
+        "import random\n\ndef mutate(code):\n\tlines = code.split(\"\\n\")\n\tif lines:  # mutation here!\n\t\tindex = random.randint(0, len(lines) - 1)\n\t\tlines[index] += \"\" if len(lines[index]) == 0 else \"  \"\n\t\tlines[index] += \"# mutation here!\"\n\treturn \"\\n\".join(lines)\n",
+        "import random\n\ndef mutate(code):\n\tlines = code.split(\"\\n\")  # mutation here!\n\tif lines:\n\t\tindex = random.randint(0, len(lines) - 1)\n\t\tlines[index] += \"\" if len(lines[index]) == 0 else \"  \"\n\t\tlines[index] += \"# mutation here!\"\n\treturn \"\\n\".join(lines)\n",
+        "import random\n\ndef mutate(code):\n\tlines = code.split(\"\\n\")  # mutation here!\n\tif lines:\n\t\tindex = random.randint(0, len(lines) - 1)\n\t\tlines[index] += \"\" if len(lines[index]) == 0 else \"  \"\n\t\tlines[index] += \"# mutation here!\"\n\treturn \"\\n\".join(lines)\n"
+    ]
+}
